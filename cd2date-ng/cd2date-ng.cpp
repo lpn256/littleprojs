@@ -110,7 +110,7 @@ int main(int argc, char *argv[]) {
               << "  d - Daxon Technology [A-Z][A-Z][0-9][0-9]...[0-9][0-9]\n"
               << "  g - Generic YDDD -\n"
               << "    Ritek Corporation, MJC Pte Ltd (Singapore),\n"
-              << "    Optodisc Technology, TDK Corporation (Luxenbourg),\n"
+              << "    Optodisc Technology, TDK Corporation (Luxembourg),\n"
               << "    Mitsubishi Chemical Corporation [CD-R],\n"
               << "    Mitsubishi Chemical Corporation [DVD-R], Taiyo Yuden,\n"
               << "    Mitsui Toatsu Chemicals + MAM-E, Moser Baer India,\n"
