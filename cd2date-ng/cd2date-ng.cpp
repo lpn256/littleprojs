@@ -35,23 +35,22 @@ void yddd_to_date(int year, int doy, int& month, int& day) {
   day = doy; // i spent 30 mins trying to figure out what was wrong here...
 }
 
-// C type: [A-Z][A-L][0-9][0-9]. GOOD
+// C type: [A-Z][A-L][0-9][0-9]. First 5 chars are filler.
 int parse_typec(std::string_view hubcode, int& year, int& month, int& day) {
-  if (hubcode.size() < 4)
+  if (hubcode.size() < 9)
     return 0;
 
-  if (!std::isupper(static_cast<unsigned char>(hubcode.at(0))) ||
-    !std::isupper(static_cast<unsigned char>(hubcode.at(1))))
+  if (!std::isupper(static_cast<unsigned char>(hubcode.at(5))) ||
+    !std::isupper(static_cast<unsigned char>(hubcode.at(6))))
     return 0;
 
-  if (!std::isdigit(static_cast<unsigned char>(hubcode.at(2))) ||
-    !std::isdigit(static_cast<unsigned char>(hubcode.at(3))))
+  if (!std::isdigit(static_cast<unsigned char>(hubcode.at(7))) ||
+    !std::isdigit(static_cast<unsigned char>(hubcode.at(8))))
     return 0;
 
-  year = 1990 + (hubcode.at(0) - 'A');
-  month = hubcode.at(1) - 'A' + 1;
-
-  day = (hubcode.at(2) - '0') * 10 + (hubcode.at(3) - '0');
+  year = 1996 + (hubcode.at(0) - 'A');
+  month = hubcode.at(6) - 'A' + 1;
+  day = (hubcode.at(7) - '0') * 10 + (hubcode.at(8) - '0');
 
   return (month >= 1 && month <= 12 && day >= 1 && day <= 31);
 }
@@ -71,7 +70,6 @@ int parse_typed(std::string_view hubcode, int& year, int& month, int& day) {
   }
 
   year = 1999 + (hubcode.at(1) - 'A');
-
   month = (hubcode.at(2) - '0') * 10 + (hubcode.at(3) - '0');
   day   = (hubcode.at(7) - '0') * 10 + (hubcode.at(8) - '0');
 
