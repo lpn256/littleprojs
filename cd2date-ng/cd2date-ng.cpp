@@ -116,7 +116,7 @@ int main(int argc, char *argv[]) {
               << "    Mitsui Toatsu Chemicals + MAM-E, Moser Baer India,\n"
               << "    Prodisc, Eastman Kodak Company\n\n"
               << "NOTE: Decade defaults to 2000 if not specified"
-              << "(used for standard YDDD format).";
+              << " (used for standard YDDD format).";
     return 1;
   }
 
