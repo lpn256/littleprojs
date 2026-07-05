@@ -7,7 +7,8 @@ Original can be found [here](https://archive.org/details/cd2date_v2.0B1).
 	Manufacturer Types:
 	c - CMC Magnetics [A-Z][A-L][0-9][0-9]
 	d - Daxon Technology [A-Z][A-Z][0-9][0-9]...[0-9][0-9]
-	t - TDK Corporation (Luxembourg) [Early]  g - Generic YDDD -
+	t - TDK Corporation (Luxembourg) [Early]
+	g - Generic YDDD -
 		Ritek Corporation, MJC Pte Ltd (Singapore),
 		Optodisc Technology, TDK Corporation (Luxembourg),
 		Mitsubishi Chemical Corporation [CD-R],

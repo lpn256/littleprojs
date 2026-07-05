@@ -122,7 +122,7 @@ int main(int argc, char *argv[]) {
               << "Manufacturer Types:\n"
               << "  c - CMC Magnetics [A-Z][A-L][0-9][0-9]\n"
               << "  d - Daxon Technology [A-Z][A-Z][0-9][0-9]...[0-9][0-9]\n"
-              << "  t - TDK Corporation (Luxembourg) [Early]"
+              << "  t - TDK Corporation (Luxembourg) [Early]\n"
               << "  g - Generic YDDD -\n"
               << "    Ritek Corporation, MJC Pte Ltd (Singapore),\n"
               << "    Optodisc Technology, TDK Corporation (Luxembourg),\n"
