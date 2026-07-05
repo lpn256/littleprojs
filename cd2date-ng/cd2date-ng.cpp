@@ -76,9 +76,23 @@ int parse_typed(std::string_view hubcode, int& year, int& month, int& day) {
   return (month >= 1 && month <= 12 && day >= 1 && day <= 31); //is this right?
 }
 
+// T type: [A-Z][0-9][A-Z][0-9][0-9][Q/W/X][A-Z][0-9][A-Z].
+int parse_typet(std::string_view hubcode, int& decade, int& year, int& month, int& day) {
+  if (hubcode.size() < 9)
+    return 0;
+
+  if (!std::isdigit(static_cast<unsigned char>(hubcode.at(1))))
+    return 0;
+
+  year = decade + (hubcode.at(1) - '0');
+  month = 1;
+  day = 1;
+
+  return (month >= 1 && month <= 12 && day >= 1 && day <= 31);
+}
+
 // Generic format (YDDD).
-int parse_typeg(std::string_view hubcode, int& decade, int& year, int& month,
-                int& day) {
+int parse_typeg(std::string_view hubcode, int& decade, int& year, int& month, int& day) {
   if (hubcode.size() < 4)
     return 0;
 
@@ -108,6 +122,7 @@ int main(int argc, char *argv[]) {
               << "Manufacturer Types:\n"
               << "  c - CMC Magnetics [A-Z][A-L][0-9][0-9]\n"
               << "  d - Daxon Technology [A-Z][A-Z][0-9][0-9]...[0-9][0-9]\n"
+              << "  t - TDK Corporation (Luxembourg) [Early]"
               << "  g - Generic YDDD -\n"
               << "    Ritek Corporation, MJC Pte Ltd (Singapore),\n"
               << "    Optodisc Technology, TDK Corporation (Luxembourg),\n"
@@ -115,8 +130,9 @@ int main(int argc, char *argv[]) {
               << "    Mitsubishi Chemical Corporation [DVD-R], Taiyo Yuden,\n"
               << "    Mitsui Toatsu Chemicals + MAM-E, Moser Baer India,\n"
               << "    Prodisc, Eastman Kodak Company\n\n"
-              << "NOTE: Decade defaults to 2000 if not specified"
-              << " (used for standard YDDD format).";
+              << "NOTES: Decade defaults to 2000 if not specified\n"
+              << " (used for standard YDDD format).\n"
+              << " Type T only returns Jan 1 by design.";
     return 1;
   }
 
@@ -139,10 +155,12 @@ int main(int argc, char *argv[]) {
     success = parse_typed(hubcode, year, month, day);
   } else if (manufacturer_type == "-g") {
     success = parse_typeg(hubcode, decade, year, month, day);
+  } else if (manufacturer_type == "-t") {
+    success = parse_typet(hubcode, decade, year, month, day);
   }
 
   if (success) {
-    std::cout << months.at(month) << " " << day << ", " << year << "\n";
+    std::cout << months.at(month) << ' ' << day << ", " << year << '\n';
   } else {
     std::cout << "No date string found in the provided hubcode.\n";
   }
