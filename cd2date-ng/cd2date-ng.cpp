@@ -17,14 +17,13 @@ int parse_typec(std::string hubcode, int &year, int &month, int &day) {
   if (lh_pos != std::string::npos)
     start = lh_pos + 2;
 
-  for (size_t i=start; i + 3 < hubcode.size(); i++) {
+  for (size_t i = start; i + 3 < hubcode.size(); i++) {
     char c1 = hubcode.at(i);
     char c2 = hubcode.at(i + 1);
     char c3 = hubcode.at(i + 2);
     char c4 = hubcode.at(i + 3);
 
-    if (isupper(c1) && isupper(c2) &&
-        isdigit(c3) && isdigit(c4)) {
+    if (isupper(c1) && isupper(c2) && isdigit(c3) && isdigit(c4)) {
       year = 1996 + (hubcode.at(i) - 'A' + 1);
       month = c2 - 'A' + 1;
       day = (c3 - '0') * 10 + (c4 - '0');
@@ -43,12 +42,11 @@ int parse_typed(std::string hubcode, int &year, int &month, int &day) {
   char c4 = hubcode.at(7);
   char c5 = hubcode.at(8);
 
-  if (isupper(c1) && isdigit(c2) &&
-    isdigit(c3) && isdigit(c4) && isdigit(c5)) {
-      year = 1999 + (c1 - 'A');
-      month = (c2 - '0' ) * 10 + (c3 - '0');
-      day = (c4 - '0' ) * 10 + (c5 - '0');
-    }
+  if (isupper(c1) && isdigit(c2) && isdigit(c3) && isdigit(c4) && isdigit(c5)) {
+    year = 1999 + (c1 - 'A');
+    month = (c2 - '0') * 10 + (c3 - '0');
+    day = (c4 - '0') * 10 + (c5 - '0');
+  }
 
   return (month >= 1 && month <= 12 && day >= 1 && day <= 31);
 }
@@ -61,7 +59,8 @@ int parse_typet(std::string hubcode, int &decade, int &year, int &month,
   char c3 = hubcode.at(3);
   char c4 = hubcode.at(4);
 
-  if (hubcode.size() >=4 && isdigit(c1) && (isdigit(c3)) && (isdigit(c4)) && isupper(c2)) {
+  if (hubcode.size() >= 4 && isdigit(c1) && (isdigit(c3)) && (isdigit(c4)) &&
+      isupper(c2)) {
     year = 1990 + (c1 - '0');
     month = c2 - 'A' + 1;
     day = (c3 - '0') * 10 + (c4 - '0');
@@ -78,18 +77,21 @@ int parse_typeg(std::string hubcode, int &decade, int &year, int &month,
   char c3 = hubcode.at(2);
   char c4 = hubcode.at(3);
 
-  if (hubcode.size() >= 4 && isdigit(c1) && isdigit(c2) && isdigit(c3) && isdigit(c4)) {
-    std::array<int, 13> days_in_month = {0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
+  if (hubcode.size() >= 4 && isdigit(c1) && isdigit(c2) && isdigit(c3) &&
+      isdigit(c4)) {
+    std::array<int, 13> days_in_month = {0,  31, 28, 31, 30, 31, 30,
+                                         31, 31, 30, 31, 30, 31};
     int y_digit = c1 - '0';
     year = decade + y_digit;
 
-    int doy = (hubcode.at(1) - '0') * 100 + (hubcode.at(2) - '0') * 10 + (hubcode.at(3) - '0');
+    int doy = (hubcode.at(1) - '0') * 100 + (hubcode.at(2) - '0') * 10 +
+              (hubcode.at(3) - '0');
 
     if (doy < 1 || doy > 366)
       return 0;
 
     if ((year % 4 == 0 && year % 100 != 0) || (year % 400 == 0))
-        days_in_month.at(2) = 29;
+      days_in_month.at(2) = 29;
 
     while (month <= 12 && doy > days_in_month.at(month)) {
       doy -= days_in_month.at(month);
