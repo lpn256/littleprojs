@@ -1,4 +1,4 @@
-# cd2date-ng v2
+# cd2date-ng v3
 Basic reverse engineering of cd2date by Aztekk. Should work identical to v2.0B1
 
 Original can be found [here](https://archive.org/details/cd2date_v2.0B1).
@@ -18,4 +18,3 @@ Original can be found [here](https://archive.org/details/cd2date_v2.0B1).
 
 	NOTES: Decade defaults to 2000 if not specified
 	(used for standard YDDD format).
-	Type T only returns Jan 1 by design.

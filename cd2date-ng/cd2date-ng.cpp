@@ -2,117 +2,104 @@
 #include <array>
 #include <ctype.h>
 #include <iostream>
-#include <string>
 #include <stdlib.h>
-#include <string_view>
+#include <string>
 
 std::array<std::string, 13> months = {
-    "Invalid", "January", "February",  "March",   "April",    "May",
-    "June", "July", "August",  "September", "October", "November",
-    "December"
-};
+    "Invalid", "January", "February",  "March",   "April",    "May",     "June",
+    "July",    "August",  "September", "October", "November", "December"};
 
-// Leap year fixer.
-int is_leap_year(int year) {
-  return (year % 4 == 0 && year % 100 != 0) || (year % 400 == 0);
-}
+// C type: [A-Y][A-L][0-9][0-9].
+int parse_typec(std::string hubcode, int &year, int &month, int &day) {
+  size_t start = 0;
+  size_t lh_pos = hubcode.find("LH");
 
-// Day of Year (DoY) to Month and Day.
-void yddd_to_date(int year, int doy, int& month, int& day) {
-  std::array<int, 13> days_in_month = {
-    0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31
-  };
+  if (lh_pos != std::string::npos)
+    start = lh_pos + 2;
 
-  if (is_leap_year(year))
-    days_in_month.at(2) = 29;
+  for (size_t i=start; i + 3 < hubcode.size(); i++) {
+    char c1 = hubcode.at(i);
+    char c2 = hubcode.at(i + 1);
+    char c3 = hubcode.at(i + 2);
+    char c4 = hubcode.at(i + 3);
 
-  month = 1;
-  while (month <= 12 && doy > days_in_month[month]) {
-    doy -= days_in_month.at(month);
-    month++;
+    if (isupper(c1) && isupper(c2) &&
+        isdigit(c3) && isdigit(c4)) {
+      year = 1996 + (hubcode.at(i) - 'A' + 1);
+      month = c2 - 'A' + 1;
+      day = (c3 - '0') * 10 + (c4 - '0');
+    }
+
+    return (c1 <= 'Y' && month >= 1 && month <= 12 && day >= 1 && day <= 31);
   }
-
-  day = doy; // i spent 30 mins trying to figure out what was wrong here...
+  return 0;
 }
 
-// C type: [A-Z][A-L][0-9][0-9]. First 5 chars are filler.
-int parse_typec(std::string_view hubcode, int& year, int& month, int& day) {
-  if (hubcode.size() < 9)
-    return 0;
+// D type: [A-Z][0-9][0-9][0-9][0-9]
+int parse_typed(std::string hubcode, int &year, int &month, int &day) {
+  char c1 = hubcode.at(1);
+  char c2 = hubcode.at(2);
+  char c3 = hubcode.at(3);
+  char c4 = hubcode.at(7);
+  char c5 = hubcode.at(8);
 
-  if (!std::isupper(static_cast<unsigned char>(hubcode.at(5))) ||
-    !std::isupper(static_cast<unsigned char>(hubcode.at(6))))
-    return 0;
-
-  if (!std::isdigit(static_cast<unsigned char>(hubcode.at(7))) ||
-    !std::isdigit(static_cast<unsigned char>(hubcode.at(8))))
-    return 0;
-
-  year = 1996 + (hubcode.at(0) - 'A');
-  month = hubcode.at(6) - 'A' + 1;
-  day = (hubcode.at(7) - '0') * 10 + (hubcode.at(8) - '0');
+  if (isupper(c1) && isdigit(c2) &&
+    isdigit(c3) && isdigit(c4) && isdigit(c5)) {
+      year = 1999 + (c1 - 'A');
+      month = (c2 - '0' ) * 10 + (c3 - '0');
+      day = (c4 - '0' ) * 10 + (c5 - '0');
+    }
 
   return (month >= 1 && month <= 12 && day >= 1 && day <= 31);
 }
 
-// D type: [A-Z][A-Z][0-9][0-9]...[0-9][0-9]. GOOD
-int parse_typed(std::string_view hubcode, int& year, int& month, int& day) {
-  if (hubcode.size() < 9)
-    return 0;
+// T type: [0-9][A-L][0-9][0-9]
+int parse_typet(std::string hubcode, int &decade, int &year, int &month,
+                int &day) {
+  char c1 = hubcode.at(1);
+  char c2 = hubcode.at(2);
+  char c3 = hubcode.at(3);
+  char c4 = hubcode.at(4);
 
-  if (!std::isupper(static_cast<unsigned char>(hubcode.at(0))) ||
-    !std::isupper(static_cast<unsigned char>(hubcode.at(0))))
-    return 0;
-
-  for (size_t i = 2; i < 9; ++i) {
-    if (!std::isdigit(static_cast<unsigned char>(hubcode.at(i))))
-      return 0;
+  if (hubcode.size() >=4 && isdigit(c1) && (isdigit(c3)) && (isdigit(c4)) && isupper(c2)) {
+    year = 1990 + (c1 - '0');
+    month = c2 - 'A' + 1;
+    day = (c3 - '0') * 10 + (c4 - '0');
   }
-
-  year = 1999 + (hubcode.at(1) - 'A');
-  month = (hubcode.at(2) - '0') * 10 + (hubcode.at(3) - '0');
-  day   = (hubcode.at(7) - '0') * 10 + (hubcode.at(8) - '0');
-
-  return (month >= 1 && month <= 12 && day >= 1 && day <= 31); //is this right?
-}
-
-// T type: [A-Z][0-9][A-Z][0-9][0-9][Q/W/X][A-Z][0-9][A-Z].
-int parse_typet(std::string_view hubcode, int& decade, int& year, int& month, int& day) {
-  if (hubcode.size() < 9)
-    return 0;
-
-  if (!std::isdigit(static_cast<unsigned char>(hubcode.at(1))))
-    return 0;
-
-  year = decade + (hubcode.at(1) - '0');
-  month = 1;
-  day = 1;
 
   return (month >= 1 && month <= 12 && day >= 1 && day <= 31);
 }
 
 // Generic format (YDDD).
-int parse_typeg(std::string_view hubcode, int& decade, int& year, int& month, int& day) {
-  if (hubcode.size() < 4)
-    return 0;
+int parse_typeg(std::string hubcode, int &decade, int &year, int &month,
+                int &day) {
+  char c1 = hubcode.at(0);
+  char c2 = hubcode.at(1);
+  char c3 = hubcode.at(2);
+  char c4 = hubcode.at(3);
 
-  for (size_t i = 0; i < 4; i++) {
-    if (!std::isdigit(static_cast<unsigned char>(hubcode.at(i))))
+  if (hubcode.size() >= 4 && isdigit(c1) && isdigit(c2) && isdigit(c3) && isdigit(c4)) {
+    std::array<int, 13> days_in_month = {0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
+    int y_digit = c1 - '0';
+    year = decade + y_digit;
+
+    int doy = (hubcode.at(1) - '0') * 100 + (hubcode.at(2) - '0') * 10 + (hubcode.at(3) - '0');
+
+    if (doy < 1 || doy > 366)
       return 0;
+
+    if ((year % 4 == 0 && year % 100 != 0) || (year % 400 == 0))
+        days_in_month.at(2) = 29;
+
+    while (month <= 12 && doy > days_in_month.at(month)) {
+      doy -= days_in_month.at(month);
+      month++;
+    }
+
+    day = doy; // i spent 30 mins trying to figure out what was wrong here...
   }
 
-  int y_digit = hubcode.at(0) - '0';
-  year = decade + y_digit;
-
-  int doy = (hubcode.at(1) - '0') * 100 +
-    (hubcode.at(2) - '0') * 10 +
-    (hubcode.at(3) - '0');
-
-  if (doy < 1 || doy > 366)
-    return 0;
-
-  yddd_to_date(year, doy, month, day);
-  return 1;
+  return (month >= 1 && month <= 12 && day >= 1 && day <= 31);
 }
 
 int main(int argc, char *argv[]) {
@@ -131,8 +118,7 @@ int main(int argc, char *argv[]) {
               << "    Mitsui Toatsu Chemicals + MAM-E, Moser Baer India,\n"
               << "    Prodisc, Eastman Kodak Company\n\n"
               << "NOTES: Decade defaults to 2000 if not specified\n"
-              << " (used for standard YDDD format).\n"
-              << " Type T only returns Jan 1 by design.";
+              << " (used for standard YDDD format).";
     return 1;
   }
 
@@ -144,7 +130,8 @@ int main(int argc, char *argv[]) {
     decade = atoi(argv[3]);
   }
 
-  hubcode.erase(remove_if(hubcode.begin(), hubcode.end(), isspace), hubcode.end());
+  hubcode.erase(remove_if(hubcode.begin(), hubcode.end(), isspace),
+                hubcode.end());
 
   int year = 0, month = 0, day = 0;
   int success = 0;
