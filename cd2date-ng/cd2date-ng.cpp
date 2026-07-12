@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <array>
+#include <cmath>
 #include <ctype.h>
 #include <iostream>
 #include <stdlib.h>
@@ -10,26 +11,37 @@ std::array<std::string, 13> months = {
     "July",    "August",  "September", "October", "November", "December"};
 
 // C type: [A-Y][A-L][0-9][0-9].
-int parse_typec(std::string hubcode, int &year, int &month, int &day) {
-  size_t start = 0;
-  size_t lh_pos = hubcode.find("LH");
+int parse_typec(std::string hubcode, int &decade, int &year, int &month,
+                int &day) {
+  for (size_t i = 0; i + 3 <= hubcode.size(); i++) {
+    char c1 = hubcode[i];
+    char c2 = hubcode[i + 1];
+    char c3 = hubcode[i + 2];
+    char c4 = hubcode[i + 3];
 
-  if (lh_pos != std::string::npos)
-    start = lh_pos + 2;
+    if (c1 >= 'A' && c1 <= 'Y' && c2 >= 'A' && c2 <= 'L' && c3 >= '0' &&
+        c3 <= '9' && c4 >= '0' && c4 <= '9') {
 
-  for (size_t i = start; i + 3 < hubcode.size(); i++) {
-    char c1 = hubcode.at(i);
-    char c2 = hubcode.at(i + 1);
-    char c3 = hubcode.at(i + 2);
-    char c4 = hubcode.at(i + 3);
+      int candidate_year, candidate_month, candidate_day;
 
-    if (isupper(c1) && isupper(c2) && isdigit(c3) && isdigit(c4)) {
-      year = 1996 + (hubcode.at(i) - 'A' + 1);
-      month = c2 - 'A' + 1;
-      day = (c3 - '0') * 10 + (c4 - '0');
+      // Decade determines base year
+      if (decade < 2020) {
+        candidate_year = 1995 + (c1 - 'A' + 1);
+      } else {
+        candidate_year = 2020 + (c1 - 'A' + 1);
+      }
+
+      candidate_month = c2 - 'A' + 1;
+      candidate_day = (c3 - '0') * 10 + (c4 - '0');
+
+      if (candidate_month >= 1 && candidate_month <= 12 && candidate_day >= 1 &&
+          candidate_day <= 31) {
+        year = candidate_year;
+        month = candidate_month;
+        day = candidate_day;
+        return 1;
+      }
     }
-
-    return (c1 <= 'Y' && month >= 1 && month <= 12 && day >= 1 && day <= 31);
   }
   return 0;
 }
@@ -44,6 +56,25 @@ int parse_typed(std::string hubcode, int &year, int &month, int &day) {
 
   if (isupper(c1) && isdigit(c2) && isdigit(c3) && isdigit(c4) && isdigit(c5)) {
     year = 1999 + (c1 - 'A');
+    month = (c2 - '0') * 10 + (c3 - '0');
+    day = (c4 - '0') * 10 + (c5 - '0');
+  }
+
+  return (month >= 1 && month <= 12 && day >= 1 && day <= 31);
+}
+
+// Type R: [0-9][0-9][0-9][0-9][0-9]
+int parse_typer(std::string &hubcode, int &decade, int &year, int &month,
+                int &day) {
+  char c1 = hubcode.at(3);
+  char c2 = hubcode.at(4);
+  char c3 = hubcode.at(5);
+  char c4 = hubcode.at(6);
+  char c5 = hubcode.at(7);
+
+  if ((hubcode.size() >= 8) && isdigit(c1) && isdigit(c2) && isdigit(c3) &&
+      isdigit(c4) && isdigit(c5)) {
+    year = decade + c1 - '0';
     month = (c2 - '0') * 10 + (c3 - '0');
     day = (c4 - '0') * 10 + (c5 - '0');
   }
@@ -107,20 +138,21 @@ int parse_typeg(std::string hubcode, int &decade, int &year, int &month,
 int main(int argc, char *argv[]) {
   if (argc < 3) {
     std::cout << "Usage: " << (char *)argv[0]
-              << " -<manufacturer_type> <hubcode> [decade]\n"
+              << " -<manufacturer_type> <hubcode> \"[decade]\"\n"
               << "Manufacturer Types:\n"
-              << "  c - CMC Magnetics [A-Z][A-L][0-9][0-9]\n"
+              << "  c - CMC Magnetics [A-Z][A-L][0-9][0-9] [decade]\n"
               << "  d - Daxon Technology [A-Z][A-Z][0-9][0-9]...[0-9][0-9]\n"
-              << "  t - TDK Corporation (Luxembourg) [Early]\n"
-              << "  g - Generic YDDD -\n"
+              << "  r - Type R [0-9][0-9][0-9][0-9][0-9] [decade]-\n"
               << "    Ritek Corporation, MJC Pte Ltd (Singapore),\n"
-              << "    Optodisc Technology, TDK Corporation (Luxembourg),\n"
+              << "    Optodisc Technology\n"
+              << "  t - TDK Corporation (Luxembourg) [Early]\n"
+              << "  g - Generic [0-9][0-9][0-9][0-9] [decade] -\n"
+              << "    TDK Corporation (Luxembourg),\n"
               << "    Mitsubishi Chemical Corporation [CD-R],\n"
               << "    Mitsubishi Chemical Corporation [DVD-R], Taiyo Yuden,\n"
               << "    Mitsui Toatsu Chemicals + MAM-E, Moser Baer India,\n"
               << "    Prodisc, Eastman Kodak Company\n\n"
-              << "NOTES: Decade defaults to 2000 if not specified\n"
-              << " (used for standard YDDD format).";
+              << "NOTES: Decade defaults to 2000 if not specified.";
     return 1;
   }
 
@@ -128,8 +160,9 @@ int main(int argc, char *argv[]) {
   std::string hubcode = argv[2];
 
   int decade = 2000;
+
   if (argc >= 4) {
-    decade = atoi(argv[3]);
+    decade = round(atoi(argv[3]) / 10.0) * 10;
   }
 
   hubcode.erase(remove_if(hubcode.begin(), hubcode.end(), isspace),
@@ -139,13 +172,15 @@ int main(int argc, char *argv[]) {
   int success = 0;
 
   if (manufacturer_type == "-c") {
-    success = parse_typec(hubcode, year, month, day);
+    success = parse_typec(hubcode, decade, year, month, day);
   } else if (manufacturer_type == "-d") {
     success = parse_typed(hubcode, year, month, day);
-  } else if (manufacturer_type == "-g") {
-    success = parse_typeg(hubcode, decade, year, month, day);
+  } else if (manufacturer_type == "-r") {
+    success = parse_typer(hubcode, decade, year, month, day);
   } else if (manufacturer_type == "-t") {
     success = parse_typet(hubcode, decade, year, month, day);
+  } else if (manufacturer_type == "-g") {
+    success = parse_typeg(hubcode, decade, year, month, day);
   }
 
   if (success) {
