@@ -1,4 +1,4 @@
-# cd2date-ng v4
+# cd2date-ng v5
 Basic reverse engineering of cd2date by Aztekk. Should work identical to v2.0B1
 
 Original can be found [here](https://archive.org/details/cd2date_v2.0B1).

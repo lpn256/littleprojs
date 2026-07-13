@@ -1,9 +1,9 @@
 #include <algorithm>
 #include <array>
+#include <cctype>
 #include <cmath>
-#include <ctype.h>
+#include <cstdlib>
 #include <iostream>
-#include <stdlib.h>
 #include <string>
 
 std::array<std::string, 13> months = {
@@ -11,13 +11,17 @@ std::array<std::string, 13> months = {
     "July",    "August",  "September", "October", "November", "December"};
 
 // C type: [A-Y][A-L][0-9][0-9].
-int parse_typec(std::string hubcode, int &decade, int &year, int &month,
+int parse_typec(std::string_view hubcode, int &decade, int &year, int &month,
                 int &day) {
+  year = 0;
+  month = 0;
+  day = 0;
+
   for (size_t i = 0; i + 3 <= hubcode.size(); i++) {
-    char c1 = hubcode[i];
-    char c2 = hubcode[i + 1];
-    char c3 = hubcode[i + 2];
-    char c4 = hubcode[i + 3];
+    unsigned char c1 = hubcode.at(i);
+    unsigned char c2 = hubcode.at(i + 1);
+    unsigned char c3 = hubcode.at(i + 2);
+    unsigned char c4 = hubcode.at(i + 3);
 
     if (c1 >= 'A' && c1 <= 'Y' && c2 >= 'A' && c2 <= 'L' && c3 >= '0' &&
         c3 <= '9' && c4 >= '0' && c4 <= '9') {
@@ -47,12 +51,19 @@ int parse_typec(std::string hubcode, int &decade, int &year, int &month,
 }
 
 // D type: [A-Z][0-9][0-9][0-9][0-9]
-int parse_typed(std::string hubcode, int &year, int &month, int &day) {
-  char c1 = hubcode.at(1);
-  char c2 = hubcode.at(2);
-  char c3 = hubcode.at(3);
-  char c4 = hubcode.at(7);
-  char c5 = hubcode.at(8);
+int parse_typed(std::string_view hubcode, int &year, int &month, int &day) {
+  year = 0;
+  month = 0;
+  day = 0;
+
+  if (hubcode.length() < 9)
+    return 0;
+
+  unsigned char c1 = hubcode.at(1);
+  unsigned char c2 = hubcode.at(2);
+  unsigned char c3 = hubcode.at(3);
+  unsigned char c4 = hubcode.at(7);
+  unsigned char c5 = hubcode.at(8);
 
   if (isupper(c1) && isdigit(c2) && isdigit(c3) && isdigit(c4) && isdigit(c5)) {
     year = 1999 + (c1 - 'A');
@@ -64,16 +75,22 @@ int parse_typed(std::string hubcode, int &year, int &month, int &day) {
 }
 
 // Type R: [0-9][0-9][0-9][0-9][0-9]
-int parse_typer(std::string &hubcode, int &decade, int &year, int &month,
+int parse_typer(std::string_view hubcode, int &decade, int &year, int &month,
                 int &day) {
-  char c1 = hubcode.at(3);
-  char c2 = hubcode.at(4);
-  char c3 = hubcode.at(5);
-  char c4 = hubcode.at(6);
-  char c5 = hubcode.at(7);
+  if (hubcode.size() < 8)
+    return 0;
 
-  if ((hubcode.size() >= 8) && isdigit(c1) && isdigit(c2) && isdigit(c3) &&
-      isdigit(c4) && isdigit(c5)) {
+  year = 0;
+  month = 0;
+  day = 0;
+
+  unsigned char c1 = hubcode.at(3);
+  unsigned char c2 = hubcode.at(4);
+  unsigned char c3 = hubcode.at(5);
+  unsigned char c4 = hubcode.at(6);
+  unsigned char c5 = hubcode.at(7);
+
+  if (isdigit(c1) && isdigit(c2) && isdigit(c3) && isdigit(c4) && isdigit(c5)) {
     year = decade + c1 - '0';
     month = (c2 - '0') * 10 + (c3 - '0');
     day = (c4 - '0') * 10 + (c5 - '0');
@@ -82,13 +99,20 @@ int parse_typer(std::string &hubcode, int &decade, int &year, int &month,
   return (month >= 1 && month <= 12 && day >= 1 && day <= 31);
 }
 
-// T type: [0-9][A-L][0-9][0-9]
+// T type: [A-Z][0-9][A-L][0-9][0-9]
 int parse_typet(std::string hubcode, int &decade, int &year, int &month,
                 int &day) {
-  char c1 = hubcode.at(1);
-  char c2 = hubcode.at(2);
-  char c3 = hubcode.at(3);
-  char c4 = hubcode.at(4);
+  if (hubcode.size() < 5)
+    return 0;
+
+  year = 0;
+  month = 0;
+  day = 0;
+
+  unsigned char c1 = hubcode.at(1);
+  unsigned char c2 = hubcode.at(2);
+  unsigned char c3 = hubcode.at(3);
+  unsigned char c4 = hubcode.at(4);
 
   if (hubcode.size() >= 4 && isdigit(c1) && (isdigit(c3)) && (isdigit(c4)) &&
       isupper(c2)) {
@@ -103,10 +127,17 @@ int parse_typet(std::string hubcode, int &decade, int &year, int &month,
 // Generic format (YDDD).
 int parse_typeg(std::string hubcode, int &decade, int &year, int &month,
                 int &day) {
-  char c1 = hubcode.at(0);
-  char c2 = hubcode.at(1);
-  char c3 = hubcode.at(2);
-  char c4 = hubcode.at(3);
+  if (hubcode.size() < 4)
+    return 0;
+
+  year = 0;
+  month = 0;
+  day = 0;
+
+  unsigned char c1 = hubcode.at(0);
+  unsigned char c2 = hubcode.at(1);
+  unsigned char c3 = hubcode.at(2);
+  unsigned char c4 = hubcode.at(3);
 
   if (hubcode.size() >= 4 && isdigit(c1) && isdigit(c2) && isdigit(c3) &&
       isdigit(c4)) {
@@ -115,8 +146,7 @@ int parse_typeg(std::string hubcode, int &decade, int &year, int &month,
     int y_digit = c1 - '0';
     year = decade + y_digit;
 
-    int doy = (hubcode.at(1) - '0') * 100 + (hubcode.at(2) - '0') * 10 +
-              (hubcode.at(3) - '0');
+    int doy = (c2 - '0') * 100 + (c3 - '0') * 10 + (c4 - '0');
 
     if (doy < 1 || doy > 366)
       return 0;
@@ -165,7 +195,8 @@ int main(int argc, char *argv[]) {
     decade = round(atoi(argv[3]) / 10.0) * 10;
   }
 
-  hubcode.erase(remove_if(hubcode.begin(), hubcode.end(), isspace),
+  hubcode.erase(std::remove_if(hubcode.begin(), hubcode.end(),
+                               [](unsigned char c) { return std::isspace(c); }),
                 hubcode.end());
 
   int year = 0, month = 0, day = 0;
