@@ -17,7 +17,7 @@ int parse_typec(std::string_view hubcode, int &decade, int &year, int &month,
   month = 0;
   day = 0;
 
-  for (size_t i = 0; i + 3 <= hubcode.size(); i++) {
+  for (size_t i = 0; i + 4 <= hubcode.size(); i++) {
     unsigned char c1 = hubcode.at(i);
     unsigned char c2 = hubcode.at(i + 1);
     unsigned char c3 = hubcode.at(i + 2);
