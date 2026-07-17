@@ -13,6 +13,9 @@ std::array<std::string, 13> months = {
 // C type: [A-Y][A-L][0-9][0-9].
 int parse_typec(std::string_view hubcode, int &decade, int &year, int &month,
                 int &day) {
+  if (hubcode.length() < 4)
+    return 0;
+
   year = 0;
   month = 0;
   day = 0;
