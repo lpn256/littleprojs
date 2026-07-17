@@ -13,15 +13,22 @@ std::array<std::string, 13> months = {
 // C type: [A-Y][A-L][0-9][0-9].
 int parse_typec(std::string_view hubcode, int &decade, int &year, int &month,
                 int &day) {
+  std::string mutable_hubcode(hubcode);
+  size_t pos = mutable_hubcode.find("LH");
+
+  if (pos != std::string::npos) {
+    mutable_hubcode.erase(pos, 2);
+  }
+
   year = 0;
   month = 0;
   day = 0;
 
-  for (size_t i = 0; i + 4 <= hubcode.size(); i++) {
-    unsigned char c1 = hubcode.at(i);
-    unsigned char c2 = hubcode.at(i + 1);
-    unsigned char c3 = hubcode.at(i + 2);
-    unsigned char c4 = hubcode.at(i + 3);
+  for (size_t i = 0; i + 4 <= mutable_hubcode.size(); i++) {
+    unsigned char c1 = mutable_hubcode.at(i);
+    unsigned char c2 = mutable_hubcode.at(i + 1);
+    unsigned char c3 = mutable_hubcode.at(i + 2);
+    unsigned char c4 = mutable_hubcode.at(i + 3);
 
     if (c1 >= 'A' && c1 <= 'Y' && c2 >= 'A' && c2 <= 'L' && c3 >= '0' &&
         c3 <= '9' && c4 >= '0' && c4 <= '9') {
