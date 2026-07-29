@@ -5,7 +5,7 @@ Original can be found [here](https://archive.org/details/cd2date_v2.0B1).
 
 	Usage: ./cd2date-ng -<manufacturer_type> <hubcode> "[decade]"
 	Manufacturer Types:
-	c - CMC Magnetics [A-Z][A-L][0-9][0-9] [decade]
+	c - CMC Magnetics [A-Y][A-L][0-9][0-9] [decade]
 	d - Daxon Technology [A-Z][A-Z][0-9][0-9]...[0-9][0-9]
 	r - Type R [0-9][0-9][0-9][0-9][0-9] [decade]-
 		Ritek Corporation, MJC Pte Ltd (Singapore),
