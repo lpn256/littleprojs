@@ -1,4 +1,3 @@
-#include <algorithm>
 #include <array>
 #include <cctype>
 #include <cmath>
@@ -8,7 +7,8 @@
 
 std::array<std::string, 13> months = {
     "Invalid", "January", "February",  "March",   "April",    "May",     "June",
-    "July",    "August",  "September", "October", "November", "December"};
+    "July",    "August",  "September", "October", "November", "December"
+};
 
 // C type: [A-Y][A-L][0-9][0-9].
 int parse_typec(std::string_view hubcode, int &decade, int &year, int &month,
@@ -107,7 +107,7 @@ int parse_typer(std::string_view hubcode, int &decade, int &year, int &month,
 }
 
 // T type: [A-Z][0-9][A-L][0-9][0-9]
-int parse_typet(std::string hubcode, int &decade, int &year, int &month,
+int parse_typet(std::string_view hubcode, int &decade, int &year, int &month,
                 int &day) {
   if (hubcode.size() < 5)
     return 0;
@@ -132,7 +132,7 @@ int parse_typet(std::string hubcode, int &decade, int &year, int &month,
 }
 
 // Generic format (YDDD).
-int parse_typeg(std::string hubcode, int &decade, int &year, int &month,
+int parse_typeg(std::string_view hubcode, int &decade, int &year, int &month,
                 int &day) {
   if (hubcode.size() < 4)
     return 0;
@@ -174,8 +174,8 @@ int parse_typeg(std::string hubcode, int &decade, int &year, int &month,
 
 int main(int argc, char *argv[]) {
   if (argc < 3) {
-    std::cout << "Usage: " << (char *)argv[0]
-              << " -<manufacturer_type> <hubcode> \"[decade]\"\n"
+    std::cout << "Usage: " << argv[0]
+              << "  <manufacturer_type> <hubcode> \"[decade]\"\n"
               << "Manufacturer Types:\n"
               << "  c - CMC Magnetics [A-Z][A-L][0-9][0-9] [decade]\n"
               << "  d - Daxon Technology [A-Z][A-Z][0-9][0-9]...[0-9][0-9]\n"
@@ -189,36 +189,43 @@ int main(int argc, char *argv[]) {
               << "    Mitsubishi Chemical Corporation [DVD-R], Taiyo Yuden,\n"
               << "    Mitsui Toatsu Chemicals + MAM-E, Moser Baer India,\n"
               << "    Prodisc, Eastman Kodak Company\n\n"
-              << "NOTES: Decade defaults to 2000 if not specified.";
+              << "NOTES: Decade defaults to 2000 if not specified.\n";
     return 1;
   }
 
-  std::string manufacturer_type = argv[1];
+  char manufacturer_type = argv[1][0];
   std::string hubcode = argv[2];
 
   int decade = 2000;
 
   if (argc >= 4) {
-    decade = round(atoi(argv[3]) / 10.0) * 10;
+    decade = round(std::atoi(argv[3]) / 10.0) * 10;
   }
 
-  hubcode.erase(std::remove_if(hubcode.begin(), hubcode.end(),
-                               [](unsigned char c) { return std::isspace(c); }),
-                hubcode.end());
+  std::erase_if(hubcode, [](unsigned char c) { return std::isspace(c); });
 
   int year = 0, month = 0, day = 0;
   int success = 0;
 
-  if (manufacturer_type == "-c") {
-    success = parse_typec(hubcode, decade, year, month, day);
-  } else if (manufacturer_type == "-d") {
-    success = parse_typed(hubcode, year, month, day);
-  } else if (manufacturer_type == "-r") {
-    success = parse_typer(hubcode, decade, year, month, day);
-  } else if (manufacturer_type == "-t") {
-    success = parse_typet(hubcode, decade, year, month, day);
-  } else if (manufacturer_type == "-g") {
-    success = parse_typeg(hubcode, decade, year, month, day);
+  switch (manufacturer_type) {
+    case 'c':
+      success = parse_typec(hubcode, decade, year, month, day);
+      break;
+    case 'd':
+      success = parse_typed(hubcode, year, month, day);
+      break;
+    case 'r':
+      success = parse_typer(hubcode, decade, year, month, day);
+      break;
+    case 't':
+      success = parse_typet(hubcode, decade, year, month, day);
+      break;
+    case 'g':
+      success = parse_typeg(hubcode, decade, year, month, day);
+      break;
+    default:
+      std::cerr << "Error: Invalid manufacturer type '" << manufacturer_type << "'.\n";
+      return 1;
   }
 
   if (success) {
