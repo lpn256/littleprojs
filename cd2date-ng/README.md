@@ -1,7 +1,9 @@
-# cd2date-ng v5
+# cd2date-ng v6
 Basic reverse engineering of cd2date by Aztekk. Should work identical to v2.0B1
 
 Original can be found [here](https://archive.org/details/cd2date_v2.0B1).
+
+Thanks to Niski for the early TDK code work.
 
 	Usage: ./cd2date-ng -<manufacturer_type> <hubcode> "[decade]"
 	Manufacturer Types:
