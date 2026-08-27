@@ -6,8 +6,8 @@
 #include <string>
 
 std::array<std::string, 13> months = {
-    "Invalid", "January", "February",  "March",   "April",    "May",     "June",
-    "July",    "August",  "September", "October", "November", "December"
+  "Invalid", "January", "February",  "March",   "April",    "May",     "June",
+  "July",    "August",  "September", "October", "November", "December"
 };
 
 // C type: [A-Y][A-L][0-9][0-9].
