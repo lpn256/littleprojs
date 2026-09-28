@@ -3,12 +3,12 @@
 #include <cmath>
 #include <cstdlib>
 #include <iostream>
+#include <ranges>
 #include <string>
 
 std::array<std::string, 13> months = {
-  "Invalid", "January", "February",  "March",   "April",    "May",     "June",
-  "July",    "August",  "September", "October", "November", "December"
-};
+    "Invalid", "January", "February",  "March",   "April",    "May",     "June",
+    "July",    "August",  "September", "October", "November", "December"};
 
 // C type: [A-Y][A-L][0-9][0-9].
 int parse_typec(std::string_view hubcode, int &decade, int &year, int &month,
@@ -24,23 +24,20 @@ int parse_typec(std::string_view hubcode, int &decade, int &year, int &month,
   month = 0;
   day = 0;
 
-  for (size_t i = 0; i + 4 <= mutable_hubcode.size(); i++) {
-    unsigned char c1 = mutable_hubcode.at(i);
-    unsigned char c2 = mutable_hubcode.at(i + 1);
-    unsigned char c3 = mutable_hubcode.at(i + 2);
-    unsigned char c4 = mutable_hubcode.at(i + 3);
+  for (auto window : mutable_hubcode | std::views::slide(4)) {
+    unsigned char c1 = window[0];
+    unsigned char c2 = window[1];
+    unsigned char c3 = window[2];
+    unsigned char c4 = window[3];
 
     if (c1 >= 'A' && c1 <= 'Y' && c2 >= 'A' && c2 <= 'L' && c3 >= '0' &&
         c3 <= '9' && c4 >= '0' && c4 <= '9') {
-
       int candidate_year, candidate_month, candidate_day;
 
-      // Decade determines base year
-      if (decade < 2020) {
+      if (decade < 2020)
         candidate_year = 1995 + (c1 - 'A' + 1);
-      } else {
+      else
         candidate_year = 2020 + (c1 - 'A' + 1);
-      }
 
       candidate_month = c2 - 'A' + 1;
       candidate_day = (c3 - '0') * 10 + (c4 - '0');
@@ -50,6 +47,7 @@ int parse_typec(std::string_view hubcode, int &decade, int &year, int &month,
         year = candidate_year;
         month = candidate_month;
         day = candidate_day;
+
         return 1;
       }
     }
@@ -208,24 +206,25 @@ int main(int argc, char *argv[]) {
   int success = 0;
 
   switch (manufacturer_type) {
-    case 'c':
-      success = parse_typec(hubcode, decade, year, month, day);
-      break;
-    case 'd':
-      success = parse_typed(hubcode, year, month, day);
-      break;
-    case 'r':
-      success = parse_typer(hubcode, decade, year, month, day);
-      break;
-    case 't':
-      success = parse_typet(hubcode, decade, year, month, day);
-      break;
-    case 'g':
-      success = parse_typeg(hubcode, decade, year, month, day);
-      break;
-    default:
-      std::cerr << "Error: Invalid manufacturer type '" << manufacturer_type << "'.\n";
-      return 1;
+  case 'c':
+    success = parse_typec(hubcode, decade, year, month, day);
+    break;
+  case 'd':
+    success = parse_typed(hubcode, year, month, day);
+    break;
+  case 'r':
+    success = parse_typer(hubcode, decade, year, month, day);
+    break;
+  case 't':
+    success = parse_typet(hubcode, decade, year, month, day);
+    break;
+  case 'g':
+    success = parse_typeg(hubcode, decade, year, month, day);
+    break;
+  default:
+    std::cerr << "Error: Invalid manufacturer type '" << manufacturer_type
+              << "'.\n";
+    return 1;
   }
 
   if (success) {

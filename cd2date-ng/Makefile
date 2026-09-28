@@ -1,5 +1,5 @@
 CXX = g++
-CXXFLAGS = -O3 -std=c++20
+CXXFLAGS = -O3 -std=c++23
 APPNAME = cd2date-ng
 SRCFILE = $(APPNAME).cpp
 
