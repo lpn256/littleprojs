@@ -1,3 +1,4 @@
+// I'd love to do import std here, but clangd/gcc are being atrocious on NixOS.
 #include <array>
 #include <cctype>
 #include <cmath>
@@ -5,24 +6,24 @@
 #include <iostream>
 #include <string>
 
-std::array<std::string, 13> months = {
-  "Invalid", "January", "February",  "March",   "April",    "May",     "June",
-  "July",    "August",  "September", "October", "November", "December"
-};
+using std::array, std::atoi, std::cerr, std::cout, std::erase_if, std::isspace,
+    std::string, std::string_view;
+
+array<string, 13> months = {
+    "Invalid", "January", "February",  "March",   "April",    "May",     "June",
+    "July",    "August",  "September", "October", "November", "December"};
 
 // C type: [A-Y][A-L][0-9][0-9].
-int parse_typec(std::string_view hubcode, int &decade, int &year, int &month,
+int parse_typec(string_view hubcode, int &decade, int &year, int &month,
                 int &day) {
-  std::string mutable_hubcode(hubcode);
+  string mutable_hubcode(hubcode);
   size_t pos = mutable_hubcode.find("LH");
 
-  if (pos != std::string::npos) {
+  if (pos != string::npos) {
     mutable_hubcode.erase(pos, 2);
   }
 
-  year = 0;
-  month = 0;
-  day = 0;
+  year = month = day = 0;
 
   for (size_t i = 0; i + 4 <= mutable_hubcode.size(); i++) {
     unsigned char c1 = mutable_hubcode.at(i);
@@ -58,7 +59,7 @@ int parse_typec(std::string_view hubcode, int &decade, int &year, int &month,
 }
 
 // D type: [A-Z][0-9][0-9][0-9][0-9]
-int parse_typed(std::string_view hubcode, int &year, int &month, int &day) {
+int parse_typed(string_view hubcode, int &year, int &month, int &day) {
   year = 0;
   month = 0;
   day = 0;
@@ -82,14 +83,12 @@ int parse_typed(std::string_view hubcode, int &year, int &month, int &day) {
 }
 
 // Type R: [0-9][0-9][0-9][0-9][0-9]
-int parse_typer(std::string_view hubcode, int &decade, int &year, int &month,
+int parse_typer(string_view hubcode, int &decade, int &year, int &month,
                 int &day) {
   if (hubcode.size() < 8)
     return 0;
 
-  year = 0;
-  month = 0;
-  day = 0;
+  year = month = day = 0;
 
   unsigned char c1 = hubcode.at(3);
   unsigned char c2 = hubcode.at(4);
@@ -107,14 +106,12 @@ int parse_typer(std::string_view hubcode, int &decade, int &year, int &month,
 }
 
 // T type: [A-Z][0-9][A-L][0-9][0-9]
-int parse_typet(std::string_view hubcode, int &decade, int &year, int &month,
+int parse_typet(string_view hubcode, int &decade, int &year, int &month,
                 int &day) {
   if (hubcode.size() < 5)
     return 0;
 
-  year = 0;
-  month = 0;
-  day = 0;
+  year = month = day = 0;
 
   unsigned char c1 = hubcode.at(1);
   unsigned char c2 = hubcode.at(2);
@@ -132,14 +129,12 @@ int parse_typet(std::string_view hubcode, int &decade, int &year, int &month,
 }
 
 // Generic format (YDDD).
-int parse_typeg(std::string_view hubcode, int &decade, int &year, int &month,
+int parse_typeg(string_view hubcode, int &decade, int &year, int &month,
                 int &day) {
   if (hubcode.size() < 4)
     return 0;
 
-  year = 0;
-  month = 0;
-  day = 0;
+  year = month = day = 0;
 
   unsigned char c1 = hubcode.at(0);
   unsigned char c2 = hubcode.at(1);
@@ -148,8 +143,8 @@ int parse_typeg(std::string_view hubcode, int &decade, int &year, int &month,
 
   if (hubcode.size() >= 4 && isdigit(c1) && isdigit(c2) && isdigit(c3) &&
       isdigit(c4)) {
-    std::array<int, 13> days_in_month = {0,  31, 28, 31, 30, 31, 30,
-                                         31, 31, 30, 31, 30, 31};
+    array<int, 13> days_in_month = {0,  31, 28, 31, 30, 31, 30,
+                                    31, 31, 30, 31, 30, 31};
     int y_digit = c1 - '0';
     year = decade + y_digit;
 
@@ -174,64 +169,63 @@ int parse_typeg(std::string_view hubcode, int &decade, int &year, int &month,
 
 int main(int argc, char *argv[]) {
   if (argc < 3) {
-    std::cout << "Usage: " << argv[0]
-              << "  <manufacturer_type> <hubcode> \"[decade]\"\n"
-              << "Manufacturer Types:\n"
-              << "  c - CMC Magnetics [A-Z][A-L][0-9][0-9] [decade]\n"
-              << "  d - Daxon Technology [A-Z][A-Z][0-9][0-9]...[0-9][0-9]\n"
-              << "  r - Type R [0-9][0-9][0-9][0-9][0-9] [decade]-\n"
-              << "    Ritek Corporation, MJC Pte Ltd (Singapore),\n"
-              << "    Optodisc Technology\n"
-              << "  t - TDK Corporation (Luxembourg) [Early]\n"
-              << "  g - Generic [0-9][0-9][0-9][0-9] [decade] -\n"
-              << "    TDK Corporation (Luxembourg),\n"
-              << "    Mitsubishi Chemical Corporation [CD-R],\n"
-              << "    Mitsubishi Chemical Corporation [DVD-R], Taiyo Yuden,\n"
-              << "    Mitsui Toatsu Chemicals + MAM-E, Moser Baer India,\n"
-              << "    Prodisc, Eastman Kodak Company\n\n"
-              << "NOTES: Decade defaults to 2000 if not specified.\n";
+    cout << "Usage: " << argv[0] << "  <manufacturer_type> <hubcode> <decade>\n"
+         << "Manufacturer Types:\n"
+         << "  c - CMC Magnetics [A-Z][A-L][0-9][0-9] [decade]\n"
+         << "  d - Daxon Technology [A-Z][A-Z][0-9][0-9]...[0-9][0-9]\n"
+         << "  r - Type R [0-9][0-9][0-9][0-9][0-9] [decade]-\n"
+         << "    Ritek Corporation, MJC Pte Ltd (Singapore),\n"
+         << "    Optodisc Technology\n"
+         << "  t - TDK Corporation (Luxembourg) [Early]\n"
+         << "  g - Generic [0-9][0-9][0-9][0-9] [decade] -\n"
+         << "    TDK Corporation (Luxembourg),\n"
+         << "    Mitsubishi Chemical Corporation [CD-R],\n"
+         << "    Mitsubishi Chemical Corporation [DVD-R], Taiyo Yuden,\n"
+         << "    Mitsui Toatsu Chemicals + MAM-E, Moser Baer India,\n"
+         << "    Prodisc, Eastman Kodak Company\n\n"
+         << "NOTES: Decade defaults to 2000 if not specified.\n";
     return 1;
   }
 
   char manufacturer_type = argv[1][0];
-  std::string hubcode = argv[2];
+  string hubcode = argv[2];
 
   int decade = 2000;
 
   if (argc >= 4) {
-    decade = round(std::atoi(argv[3]) / 10.0) * 10;
+    decade = round(atoi(argv[3]) / 10.0) * 10;
   }
 
-  std::erase_if(hubcode, [](unsigned char c) { return std::isspace(c); });
+  erase_if(hubcode, [](unsigned char c) { return isspace(c); });
 
   int year = 0, month = 0, day = 0;
   int success = 0;
 
   switch (manufacturer_type) {
-    case 'c':
-      success = parse_typec(hubcode, decade, year, month, day);
-      break;
-    case 'd':
-      success = parse_typed(hubcode, year, month, day);
-      break;
-    case 'r':
-      success = parse_typer(hubcode, decade, year, month, day);
-      break;
-    case 't':
-      success = parse_typet(hubcode, decade, year, month, day);
-      break;
-    case 'g':
-      success = parse_typeg(hubcode, decade, year, month, day);
-      break;
-    default:
-      std::cerr << "Error: Invalid manufacturer type '" << manufacturer_type << "'.\n";
-      return 1;
+  case 'c':
+    success = parse_typec(hubcode, decade, year, month, day);
+    break;
+  case 'd':
+    success = parse_typed(hubcode, year, month, day);
+    break;
+  case 'r':
+    success = parse_typer(hubcode, decade, year, month, day);
+    break;
+  case 't':
+    success = parse_typet(hubcode, decade, year, month, day);
+    break;
+  case 'g':
+    success = parse_typeg(hubcode, decade, year, month, day);
+    break;
+  default:
+    cerr << "Error: Invalid manufacturer type '" << manufacturer_type << "'.\n";
+    return 1;
   }
 
   if (success) {
-    std::cout << months.at(month) << ' ' << day << ", " << year << '\n';
+    cout << months.at(month) << ' ' << day << ", " << year << '\n';
   } else {
-    std::cout << "No date string found in the provided hubcode.\n";
+    cout << "No date string found in the provided hubcode.\n";
   }
 
   return 0;
